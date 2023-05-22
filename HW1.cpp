@@ -1,0 +1,350 @@
+//HW1 by Jillian Handrahan
+//SUNetID: jehandra SUID: 8377009572
+
+#include <iostream>
+using namespace std;
+
+class Dnode {
+public:
+    int value;
+    Dnode* next;
+    Dnode* previous;
+    Dnode(int i) { value = i; next = previous = nullptr; }
+    Dnode() { next = previous = nullptr; }
+};
+
+class DLL {//Doubly Linked List
+public:
+    Dnode* head;
+    Dnode* tail;
+    DLL(int n, int m);//Constructor; Construct an n-node DLL with random
+    //values in 0 ... m-1
+    DLL() { head = tail = nullptr; }
+    void PrintF();//Print forward from head
+    void PrintB();//Print backward from tail
+    void RemoveAll(int k);//Delete all nodes with value k.
+    void Reverse();
+    void Sort1();
+    void Sort2();
+    void Swap(Dnode* p1, Dnode* p2);
+    /*
+    Swap the two nodes pointed by p1 and p2, respectively.
+    You are only allowed to change the "next" and "previous" of each node, but not "value".
+    Explanation will be given in class.
+
+    You can assume p1 is on the left side of p2.  Note that, in a DLL, we assume "head" is on the left side and "tail" is
+    on the right side.
+    */
+};
+
+void DLL::RemoveAll(int k) {
+    if (!head) return;//empty
+    Dnode* p1{ head };
+    while (p1) {//while p1 is not nullptr
+        Dnode* p2 = p1->next;
+        if (p1->value == k) {
+            if (p1 == head && p1 == tail) {
+                head = tail = nullptr;
+                delete p1;
+                return;
+            }
+            else if (p1 == head) {
+                head = p1->next;
+                head->previous = nullptr;
+                delete p1;
+            }
+            else if (p1 == tail) {
+                tail = p1->previous;
+                tail->next = nullptr;
+                delete p1;
+            }
+            else {
+                p1->previous->next = p1->next;
+                p1->next->previous = p1->previous;
+                delete p1;
+            }
+        }
+        p1 = p2;
+
+    }
+
+}
+
+void DLL::Sort1() {
+    if (!head || !head->next) return;//0 or 1 node
+    Dnode* p1{ head };
+    while (p1->next) {
+        Dnode* p2{ p1->next }, * p3{ p1->next };
+        Dnode* pmin{ p1 };
+        int min{ p1->value };
+        while (p2) {//while p2 is not nullptr
+            if (p2->value < min) {
+                min = p2->value;
+                pmin = p2;
+            }
+            p2 = p2->next;
+        }
+        if (pmin != p1) {//swap pmin->value with p1->value
+            pmin->value = p1->value;
+            p1->value = min;
+        }
+        //p1 = p1->next;
+        p1 = p3;
+    }
+}
+
+
+void DLL::Swap(Dnode* p1, Dnode* p2) {
+    //case 1: head/tail          (change 4)
+    //case 2: next to each other (change 6)
+    //case 3: general            (change 8)
+    //do not touch value
+    
+    //good
+    if (head == nullptr || head->next == nullptr) {
+        return;
+    }
+    
+    //good
+    if (p1 == head && p2 == tail && p1->next == p2) {
+        Dnode* ph{ p1 };
+        p1->next = nullptr;
+        p1->previous = p2;
+        p2->previous = nullptr;
+        p2->next = ph;
+        head = p2;
+        tail = p1;
+        
+        //PrintF();
+        return;
+    }
+    
+    //seems to work, looks ok
+    if (p1 == head && p2 == tail) {
+        p2->next = p1->next;
+        p2->next->previous = p2;
+        p1->previous = p2->previous;
+        p1->previous->next = p1;
+        p2->previous = nullptr;
+    
+        p1->next = nullptr;
+        
+        head = p2;
+        tail = p1;
+        //PrintF();
+        return;
+    }
+    
+    //should be good looks weird
+    if (p1 != head && p2 == tail && p1->next == p2) {
+        Dnode* pt{ p1->next };
+        p1->next = p2->next;
+        p2->next = pt;
+        
+        p2->next->previous = p2;
+        
+        pt = p1->previous;
+        p1->previous = p2->previous;
+        p2->previous = pt;
+        
+        p1->previous->next = p1;
+        p2->previous->next = p2;
+     
+
+        tail = p1;
+
+
+       // PrintF();
+        return;
+    }
+    
+    //looks verified, maybe weird tail behavior
+    if (p1 != head && p2 == tail) {
+        Dnode* ph{ p1->next };
+        p1->next = p2->next;
+        p2->next = ph;
+        
+        p2->next->previous = p2;
+
+        ph = p1->previous;
+        p1->previous = p2->previous;
+        p2->previous = ph;
+        
+        p1->previous->next = p1;
+        p2->previous->next = p2;
+        tail = p1;
+        
+        //PrintF();
+        return;
+    }
+    
+    //verified
+    if (p1 == head && p2 != tail &&  p1->next == p2) {
+        Dnode* ph{ p1->next };
+        // move head to p2
+        p1->next = p2->next;
+        p2->next = ph;
+        
+        p1->next->previous = p1;
+        p2->next->previous = p2;
+        
+        head = p2;
+        ph = p1->previous;
+        p1->previous = p2->previous;
+        p2->previous = ph;
+        
+        p1->previous->next = p1;
+        
+        
+        //PrintF();
+        return;
+    }
+    
+    //verified
+    if (p1 == head && p2 != tail) {
+        Dnode* ph{ p1->next };
+        // move head to p2
+        p1->next = p2->next;
+        p2->next = ph;
+        
+        p1->next->previous = p1;
+        p2->next->previous = p2;
+        
+        p1->previous = p2->previous;
+        p2->previous = nullptr;
+        
+        head = p2;
+        
+        //put p2 in head
+        p1->previous->next = p1;
+        //PrintF();
+        return;
+    }
+    
+    //verified
+    if (p1->next == p2) {
+        Dnode* pd{ p1->next};
+        p1->next = p2->next;
+        p2->next = pd;
+        
+        p1->next->previous = p1;
+        p2->next->previous = p2;
+  
+        pd = p1->previous;
+        
+        p1->previous = p2->previous;
+        p2->previous = pd;
+        
+        p1->previous->next = p1;
+        p2->previous->next = p2;
+
+        //PrintF();
+        return;
+    }
+    
+    //verified
+    if (p1 != head && p2 != tail) {
+        Dnode* pp{ p1->next };
+        p1->next = p2->next;
+        p2->next = pp;
+        
+        p1->next->previous = p1;
+        p2->next->previous = p2;
+        
+        pp = p1->previous;
+        p1->previous = p2->previous;
+        p2->previous = pp;
+        
+        p1->previous->next = p1;
+        p2->previous->next = p2;
+
+        //PrintF();
+        return;
+    }
+
+
+}
+
+void DLL::Sort2() {
+    if (!head || !head->next) return;//0 or 1 node
+    Dnode* p1{ head };
+    while (p1->next) {
+        Dnode* p2{ p1->next }, *p3{p1->next};
+        Dnode* pmin{ p1 };
+        int min{ p1->value };
+        while (p2) {//while p2 is not nullptr
+            if (p2->value < min) {
+                min = p2->value;
+                pmin = p2;
+            }
+            p2 = p2->next;
+        }
+        if (pmin != p1) {//swap pmin->value with p1->value
+            //pmin->value = p1->value;
+            //p1->value = min;
+            //PrintF();
+            //cout  << "aaa" << endl;
+            Swap(p1, pmin);
+        }
+        //p1 = p1->next;
+        p1 = p3;
+    }
+}
+
+
+
+DLL::DLL(int n, int m) {
+    head = tail = nullptr;
+    for (int i = 0; i < n; ++i) {
+        Dnode* p1{ new Dnode{rand() % m} };
+        if (!head) {//empty
+            head = tail = p1;
+        }
+        else {
+            tail->next = p1;
+            p1->previous = tail;
+            tail = p1;
+        }
+    }
+}
+
+void DLL::PrintF() {
+    cout << endl;
+    Dnode* p1{ head };
+    while (p1) {
+        cout << p1->value << " ";
+        p1 = p1->next;
+    }
+}
+
+void DLL::PrintB() {
+    cout << endl;
+    Dnode* p1{ tail };
+    while (p1) {
+        cout << p1->value << " ";
+        p1 = p1->previous;
+    }
+}
+
+
+
+int main() {
+//    DLL  L1{ 30, 20 };
+//    L1.PrintF();
+//    L1.PrintB();
+//    L1.RemoveAll(1);
+//    L1.PrintF();
+//    L1.PrintB();
+//    L1.Sort1();
+//    L1.PrintF();
+//    L1.PrintB();
+
+    DLL L2{ 150, 10 };
+    L2.PrintF();
+//    L2.PrintB();
+    L2.Sort2();
+    L2.PrintF();
+//    L2.PrintB();
+
+    return 0;
+}
